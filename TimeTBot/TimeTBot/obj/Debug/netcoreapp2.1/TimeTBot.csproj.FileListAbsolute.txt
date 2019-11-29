@@ -1,0 +1,12 @@
+C:\Users\User\source\repos\TimeTBot\TimeTBot\bin\Debug\netcoreapp2.1\TimeTBot.deps.json
+C:\Users\User\source\repos\TimeTBot\TimeTBot\bin\Debug\netcoreapp2.1\TimeTBot.runtimeconfig.json
+C:\Users\User\source\repos\TimeTBot\TimeTBot\bin\Debug\netcoreapp2.1\TimeTBot.runtimeconfig.dev.json
+C:\Users\User\source\repos\TimeTBot\TimeTBot\bin\Debug\netcoreapp2.1\TimeTBot.dll
+C:\Users\User\source\repos\TimeTBot\TimeTBot\obj\Debug\netcoreapp2.1\TimeTBot.csprojAssemblyReference.cache
+C:\Users\User\source\repos\TimeTBot\TimeTBot\obj\Debug\netcoreapp2.1\TimeTBot.csproj.CoreCompileInputs.cache
+C:\Users\User\source\repos\TimeTBot\TimeTBot\obj\Debug\netcoreapp2.1\TimeTBot.AssemblyInfoInputs.cache
+C:\Users\User\source\repos\TimeTBot\TimeTBot\obj\Debug\netcoreapp2.1\TimeTBot.AssemblyInfo.cs
+C:\Users\User\source\repos\TimeTBot\TimeTBot\bin\Debug\netcoreapp2.1\Settings.job
+C:\Users\User\source\repos\TimeTBot\TimeTBot\bin\Debug\netcoreapp2.1\TimeTBot.pdb
+C:\Users\User\source\repos\TimeTBot\TimeTBot\obj\Debug\netcoreapp2.1\TimeTBot.dll
+C:\Users\User\source\repos\TimeTBot\TimeTBot\obj\Debug\netcoreapp2.1\TimeTBot.pdb
