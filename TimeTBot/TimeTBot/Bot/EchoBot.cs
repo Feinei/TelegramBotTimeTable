@@ -42,39 +42,12 @@ namespace Microsoft.BotBuilderSamples.Bots
         {
             if (context == null)
                 context = turnContext;
+
             var id = turnContext.Activity.Conversation.Id;
             if (!db.IsUserAdded(id))
                 db.TryToAddUser(new TUser() { Id = id });
 
-            if (cacheDictionary.ContainsKey(id) && cacheDictionary.GetValue(id).ContainsKey("next"))
-            {
-                foreach (var command in commands)
-                {
-                    if (command.Contains(cacheDictionary.GetValue(id)["next"]))
-                    {
-                        var message = command.Execute(id, turnContext.Activity.Text);
-                        if (message != null)
-                            await turnContext.SendActivityAsync(MessageFactory.Text(message), cancellationToken);
-                        return;
-                    }
-                }      
-            }
-
-            foreach (var command in commands)
-            {
-                if (command.Contains(turnContext.Activity.Text))
-                {
-                    var message = command.Execute(id, turnContext.Activity.Text);
-                    if (message != null)
-                        await turnContext.SendActivityAsync(MessageFactory.Text(message), cancellationToken);
-                    return;
-                }
-            }
-
-            foreach (var command in commands)
-            {
-                await turnContext.SendActivityAsync(MessageFactory.Text($"{command.Name} ({command.GetDescription()}) \n"), cancellationToken);
-            }
+            HandleCommands(turnContext, cancellationToken, id);
         }
 
         protected override async Task OnMembersAddedAsync(IList<ChannelAccount> membersAdded, ITurnContext<IConversationUpdateActivity> turnContext, CancellationToken cancellationToken)
@@ -85,6 +58,39 @@ namespace Microsoft.BotBuilderSamples.Bots
                 {
                     await turnContext.SendActivityAsync(MessageFactory.Text($"Hello and welcome!"), cancellationToken);
                 }
+            }
+        }
+
+        private void HandleCommands(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken, string id)
+        {
+            if (cacheDictionary.ContainsKey(id) && cacheDictionary.GetValue(id).ContainsKey("next"))
+            {
+                foreach (var command in commands)
+                {
+                    if (command.Contains(cacheDictionary.GetValue(id)["next"]))
+                    {
+                        var message = command.Execute(id, turnContext.Activity.Text);
+                        if (message != null)
+                            turnContext.SendActivityAsync(MessageFactory.Text(message), cancellationToken);
+                        return;
+                    }
+                }
+            }
+
+            foreach (var command in commands)
+            {
+                if (command.Contains(turnContext.Activity.Text))
+                {
+                    var message = command.Execute(id, turnContext.Activity.Text);
+                    if (message != null)
+                        turnContext.SendActivityAsync(MessageFactory.Text(message), cancellationToken);
+                    return;
+                }
+            }
+
+            foreach (var command in commands)
+            {
+                turnContext.SendActivityAsync(MessageFactory.Text($"{command.Name} ({command.GetDescription()}) \n"), cancellationToken);
             }
         }
     }
