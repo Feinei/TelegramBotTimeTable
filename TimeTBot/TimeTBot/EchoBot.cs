@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Schema;
 using TimeTBot;
+using TimeTBot.Commands.EventCommands;
 
 namespace Microsoft.BotBuilderSamples.Bots
 {
     public class EchoBot<TTimeTableEvent, TEvent, TUser>: ActivityHandler
         where TTimeTableEvent : class, ITimeTableEvent, new()
-        where TEvent : class, IEvent
+        where TEvent : class, IEvent, new()
         where TUser : class, IUser, new() 
     {
         private static ITurnContext context;
@@ -21,7 +22,8 @@ namespace Microsoft.BotBuilderSamples.Bots
         private IDbContext<TTimeTableEvent, TEvent, TUser> db;
         private ICacheDictionary<string, Dictionary<string, string>> cacheDictionary;
 
-        public EchoBot(IDbContext<TTimeTableEvent, TEvent, TUser> db, ICacheDictionary<string, Dictionary<string, string>> cacheDictionary)
+        public EchoBot(IDbContext<TTimeTableEvent, TEvent, TUser> db, ICacheDictionary<string, Dictionary<string, string>> cacheDictionary,
+            ITurnContext<IMessageActivity> turnContext)
         {
             this.db = db;
             this.cacheDictionary = cacheDictionary;
@@ -30,7 +32,9 @@ namespace Microsoft.BotBuilderSamples.Bots
             {
                 new CreateTimeTableCommand<TTimeTableEvent, TEvent, TUser>(db, cacheDictionary),
                 new ShowTimeTableCommand<TTimeTableEvent, TEvent, TUser>(db),
-                new RemoveTimeTableCommand<TTimeTableEvent, TEvent, TUser>(db, cacheDictionary)
+                new RemoveTimeTableCommand<TTimeTableEvent, TEvent, TUser>(db, cacheDictionary),
+                new NotificatorCommand<TTimeTableEvent, TEvent, TUser>(db, turnContext),
+                new ShowAllNotificationsCommand<TTimeTableEvent, TEvent, TUser>(db)
             };
         }
 
