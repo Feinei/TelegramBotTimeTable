@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text;
 
 namespace TimeTBot
@@ -17,30 +18,35 @@ namespace TimeTBot
 
         public override string Execute(string id, string message)
         {
+            var builder = new StringBuilder();
+
             try
             {
                 var events = db.GetTimeTableEvents(id)
                                 .GroupBy(ev => ev.Day);
 
-                var builder = new StringBuilder();
-
                 foreach (var day in events)
                 {
                     builder.Append($"{day.Key}:\n");
                     foreach (var e in day)
-                        builder.Append($"[{e.TimeTo.ToString()} - {e.TimeFrom.ToString()}] {e.Name} \n");
+                    {
+                        var timeFrom = TimeSpan.FromSeconds(e.TimeFrom);
+                        var timeTo = TimeSpan.FromSeconds(e.TimeTo);
+                        builder.Append($"({timeFrom.Hours}:{timeFrom.Minutes}:{timeFrom.Seconds} - " +
+                            $"{timeTo.Hours}:{timeTo.Minutes}:{timeTo.Seconds}) {e.Name} \n");
+                    }
                 }
-                return builder.ToString();
             }
-            catch
-            {
+            catch { }
+
+            if (builder.Length == 0)
                 return "Ошибка! Расписание не найдено!";
-            }
+            return builder.ToString();
         }
 
         public override string GetDescription()
         {
-            return "Посмотреть расписание.";
+            return "Посмотреть расписание";
         }
     }
 }

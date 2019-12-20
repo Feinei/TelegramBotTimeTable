@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace TimeTBot
@@ -22,9 +20,9 @@ namespace TimeTBot
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("Server=tcp:adas-server.database.windows.net," +
-                "1433;Initial Catalog=ADAS-DB;Persist Security Info=False;" +
-                "User ID=ArtemS00@adas-server;Password=3k@zYghJ;" +
+            optionsBuilder.UseSqlServer("Server=tcp:timetbot.database.windows.net," +
+                "1433;Initial Catalog=TimeTableDB;Persist Security Info=False;" +
+                "User ID=ArtemS00@timetbot;Password=3k@zYghJ;" +
                 "MultipleActiveResultSets=False;Encrypt=True;" +
                 "TrustServerCertificate=False;Connection Timeout=30;");
         }
@@ -65,6 +63,28 @@ namespace TimeTBot
             return TimeTableEvents.Where(u => u.UserId == userId);
         }
 
+        // Remove time table event by name
+        public bool TryToRemoveTimeTableEvent(string userId, string eventName)
+        {
+            var ev = TimeTableEvents
+                .Where(e => e.UserId == userId && e.Name.ToLower() == eventName.ToLower())
+                .FirstOrDefault();
+            if (ev == null)
+                return false;
+            TimeTableEvents.Remove(ev);
+            SaveChanges();
+            return true;
+        }
+
+        // Remove all time table
+        public void RemoveTimeTable(string userId)
+        {
+            var events = TimeTableEvents
+                .Where(e => e.UserId == userId);
+            TimeTableEvents.RemoveRange(events);
+            SaveChanges();
+        }
+
         // Add event
         public void AddEvent(TEvent ev)
         {
@@ -76,6 +96,11 @@ namespace TimeTBot
         public IQueryable<TEvent> GetEvents(string userId)
         {
             return Events.Where(e => e.UserId == userId);
+        }
+
+        public bool TryToRemoveEvent(string userId, string eventName)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

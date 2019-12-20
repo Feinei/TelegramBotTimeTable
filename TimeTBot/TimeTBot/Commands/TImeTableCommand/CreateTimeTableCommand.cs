@@ -1,65 +1,67 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Telegram.Bot;
-using Telegram.Bot.Types;
+﻿using System.Collections.Generic;
 
 namespace TimeTBot
 {
     public class CreateTimeTableCommand<TTimeTableEvent, TEvent, TUser> : Command
-        where TTimeTableEvent : class, ITimeTableEvent
+        where TTimeTableEvent : class, ITimeTableEvent, new()
         where TEvent : class, IEvent
         where TUser : class, IUser
     {
         private IDbContext<TTimeTableEvent, TEvent, TUser> db;
-        private ICacheDictionary<string, Dictionary<string, string>> cache;
+        private ICacheDictionary<string, Dictionary<string, string>> cacheDictionary;
 
         public CreateTimeTableCommand(IDbContext<TTimeTableEvent, TEvent, TUser> context,
             ICacheDictionary<string, Dictionary<string, string>> cacheDictionary) : base(@"/tt create")
         {
             db = context;
-            cache = cacheDictionary;
+            this.cacheDictionary = cacheDictionary;
         }
 
         public override string Execute(string id, string message)
         {
-            if (!cache.ContainsKey(id))
-            {
-                cache.AddValue(id, new Dictionary<string, string>());
-            }
             if (message.Contains(this.Name))
-                return "Введите события для расписания в формате \"День недели, время от (в формате \"hh:mm:ss\"), время до, название\"." +
-                    "\nВведите \"выход\", чтобы закончись.";
-            if (message == "Выход")
             {
-                if (saveChanges())
-                    return "Расписание сохранено!";
-                return "Ошибка сохранения! Возможно отсутствуют данные!";
+                SetCache(id);
+                return "Введите события для расписания в формате \"День недели, время от (в формате \"hh:mm:ss\"), время до, название\"." +
+                    "\nВведите \"выход\", чтобы закончить.";
             }
-            return tryToAddEvent(message) ? null : "Ошибка! Некорректный формат!";
+            if (message.ToLower() == "выход")
+            {
+                ClearCache(id);
+                return "Расписание сохранено!";
+            }
+            return TryToSaveEvent(id, message) ? null : "Ошибка! Некорректный формат!\n Введите \"выход\", чтобы закончить.";
         }
 
-        private bool saveChanges()
+        private void SetCache(string id)
         {
-            // сохранить все события, отчистить кэш
-            throw new NotImplementedException();
+            if (!cacheDictionary.ContainsKey(id))
+                cacheDictionary.AddValue(id, new Dictionary<string, string>());
+            var dict = cacheDictionary.GetValue(id);
+            dict["next"] = this.Name;
         }
 
-        private bool tryToParseMessage(string message)
+        private void ClearCache(string id)
         {
-            // сохранить в кэше
-            throw new NotImplementedException();
+            if (!cacheDictionary.ContainsKey(id))
+                return;
+            var dict = cacheDictionary.GetValue(id);
+            dict.Remove("next");
         }
 
-        private bool tryToAddEvent(string message)
+        private bool TryToSaveEvent(string id, string message)
         {
-            throw new NotImplementedException();
+            var ev = new TTimeTableEvent().Parse(message);
+            if (ev == null)
+                return false;
+            ev.UserId = id;
+            db.AddTimeTableEvent((TTimeTableEvent)ev);
+            return true;
         }
 
         public override string GetDescription()
         {
-            return "Create time table";
+            return "Создать расписние";
         }
     }
 }

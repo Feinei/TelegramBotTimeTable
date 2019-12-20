@@ -11,48 +11,66 @@ using TimeTBot;
 namespace Microsoft.BotBuilderSamples.Bots
 {
     public class EchoBot<TTimeTableEvent, TEvent, TUser>: ActivityHandler
-        where TTimeTableEvent : class, ITimeTableEvent
+        where TTimeTableEvent : class, ITimeTableEvent, new()
         where TEvent : class, IEvent
-        where TUser : class, IUser 
+        where TUser : class, IUser, new() 
     {
         private static ITurnContext context;
-        private static IDbContext<TTimeTableEvent, TEvent, TUser> db;
 
-        public EchoBot()
+        private Command[] commands;
+        private IDbContext<TTimeTableEvent, TEvent, TUser> db;
+        private ICacheDictionary<string, Dictionary<string, string>> cacheDictionary;
+
+        public EchoBot(IDbContext<TTimeTableEvent, TEvent, TUser> db, ICacheDictionary<string, Dictionary<string, string>> cacheDictionary)
         {
+            this.db = db;
+            this.cacheDictionary = cacheDictionary;
+
+            commands = new Command[]
+            {
+                new CreateTimeTableCommand<TTimeTableEvent, TEvent, TUser>(db, cacheDictionary),
+                new ShowTimeTableCommand<TTimeTableEvent, TEvent, TUser>(db),
+                new RemoveTimeTableCommand<TTimeTableEvent, TEvent, TUser>(db, cacheDictionary)
+            };
         }
-
-        //private static List<Command> commandList { get; }
-
-        //static EchoBot()
-        //{
-        //    commandList = new List<Command>() { new AddTimeTableEventCommand() };
-        //}
 
         protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
         {
-            //if (context == null)
-            //    context = turnContext;
-            //switch (turnContext.Activity.Text.ToLower())
-            //{
-            //    case "hi":
-            //        await turnContext.SendActivityAsync(MessageFactory.Text($"Hi!"), cancellationToken);
-            //        Id = turnContext.Activity.Conversation.Id;
-            //        break;
-            //    default:
-            //        await turnContext.SendActivityAsync(MessageFactory.Text($"Echo (1): {turnContext.Activity.Text}"), cancellationToken);
-            //        if (Id != null)
-            //        {
-            //            turnContext.Activity.Conversation.Id = Id;
-            //            await turnContext.SendActivityAsync(MessageFactory.Text($"{turnContext.Activity.Text}"), cancellationToken);
-            //            foreach (var user in Db.Users)
-            //            {
-            //                await turnContext.SendActivityAsync(MessageFactory.Text($"{user.Email} = {user.Password}"), cancellationToken);
-            //            }
-            //        }
-            //        break;
-            //}
+            if (context == null)
+                context = turnContext;
+            var id = turnContext.Activity.Conversation.Id;
+            if (!db.IsUserAdded(id))
+                db.TryToAddUser(new TUser() { Id = id });
 
+            if (cacheDictionary.ContainsKey(id) && cacheDictionary.GetValue(id).ContainsKey("next"))
+            {
+                foreach (var command in commands)
+                {
+                    if (command.Contains(cacheDictionary.GetValue(id)["next"]))
+                    {
+                        var message = command.Execute(id, turnContext.Activity.Text);
+                        if (message != null)
+                            await turnContext.SendActivityAsync(MessageFactory.Text(message), cancellationToken);
+                        return;
+                    }
+                }      
+            }
+
+            foreach (var command in commands)
+            {
+                if (command.Contains(turnContext.Activity.Text))
+                {
+                    var message = command.Execute(id, turnContext.Activity.Text);
+                    if (message != null)
+                        await turnContext.SendActivityAsync(MessageFactory.Text(message), cancellationToken);
+                    return;
+                }
+            }
+
+            foreach (var command in commands)
+            {
+                await turnContext.SendActivityAsync(MessageFactory.Text($"{command.Name} ({command.GetDescription()}) \n"), cancellationToken);
+            }
         }
 
         protected override async Task OnMembersAddedAsync(IList<ChannelAccount> membersAdded, ITurnContext<IConversationUpdateActivity> turnContext, CancellationToken cancellationToken)

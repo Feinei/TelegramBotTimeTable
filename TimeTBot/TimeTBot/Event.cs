@@ -10,6 +10,7 @@ namespace TimeTBot
         public int Id { get; set; }
         public string UserId { get; set; }
 
+        // Lenght <= 60
         public string Description { get; set; }
 
         public DateTime NextTime { get; set; }

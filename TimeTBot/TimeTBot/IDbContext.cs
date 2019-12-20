@@ -16,8 +16,11 @@ namespace TimeTBot
 
         void AddTimeTableEvent(TTimeTableEvent ev);
         IQueryable<TTimeTableEvent> GetTimeTableEvents(string userId);
+        bool TryToRemoveTimeTableEvent(string userId, string eventName);
+        void RemoveTimeTable(string userId);
 
         void AddEvent(TEvent ev);
         IQueryable<TEvent> GetEvents(string userId);
+        bool TryToRemoveEvent(string userId, string eventName);
     }
 }

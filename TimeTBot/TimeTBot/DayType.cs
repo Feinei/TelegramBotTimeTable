@@ -5,5 +5,5 @@ using System.Threading.Tasks;
 
 namespace TimeTBot
 {
-    public enum DayType { Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday }
+    public enum DayType { Понедельник, Вторник, Среда, Четверг, Пятница, Суббота, Воскресенье }
 }
