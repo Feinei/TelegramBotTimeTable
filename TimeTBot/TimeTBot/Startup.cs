@@ -32,13 +32,13 @@ namespace Microsoft.BotBuilderSamples
         public void ConfigureServices(IServiceCollection services)
         {
             string connection = Configuration.GetConnectionString("DefaultConnection");
-            services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(connection));
+            services.AddDbContext<ApplicationContext<TimeTableEvent, Event, User>>(options => options.UseSqlServer(connection));
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             // Create the Bot Framework Adapter.
             services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
-            services.AddSingleton<ICacheDictionary<string, List<string>>, CacheDictionary>();
+            services.AddSingleton<ICacheDictionary<string, Dictionary<string, string>>, CacheDictionary>();
             services.AddScoped<IDbContext<TimeTableEvent, Event, User>, ApplicationContext<TimeTableEvent, Event, User>>();
             // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
             services.AddTransient<IBot, EchoBot<TimeTableEvent, Event, User>>();

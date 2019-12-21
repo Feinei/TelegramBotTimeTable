@@ -18,5 +18,7 @@ namespace TimeTBot
         int TimeTo { get; set; }
 
         DayType Day { get; set; }
+
+        ITimeTableEvent Parse(string timeTableEvent);
     }
 }

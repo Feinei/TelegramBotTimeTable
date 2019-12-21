@@ -1,7 +1,5 @@
-﻿    using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Text;
 
 namespace TimeTBot
 {
@@ -16,8 +14,18 @@ namespace TimeTBot
 
         void AddTimeTableEvent(TTimeTableEvent ev);
         IQueryable<TTimeTableEvent> GetTimeTableEvents(string userId);
+        bool TryToRemoveTimeTableEvent(string userId, string eventName);
+        void RemoveTimeTable(string userId);
 
         void AddEvent(TEvent ev);
         IQueryable<TEvent> GetEvents(string userId);
+        IQueryable<TEvent> GetAllEvents();
+        bool TryToRemoveEvent(string userId, string eventName);
+
+        void AddVisit(string userId);
+        void AddUserForVisit(string userId, string userName);
+        int GetCountOfVisits(string userId);
+        // Tuple (user name | count of visits)
+        Tuple<string, int>[] GetAllVisits();
     }
 }

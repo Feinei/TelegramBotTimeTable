@@ -17,11 +17,10 @@ namespace Microsoft.BotBuilderSamples.Controllers
     [ApiController]
     public class BotController : ControllerBase
     {
-        public static TurnContext Context;
         private readonly IBotFrameworkHttpAdapter Adapter;
         private readonly IBot Bot;
 
-        public BotController(ApplicationContext context, IBotFrameworkHttpAdapter adapter, IBot bot)
+        public BotController(IBotFrameworkHttpAdapter adapter, IBot bot)
         {
             Adapter = adapter;
             Bot = bot;
