@@ -15,5 +15,7 @@ namespace TimeTBot
         int Freq { get; set; }
 
         bool IsDone { get; set; }
+
+        IEvent SplitMessage(string message);
     }
 }
