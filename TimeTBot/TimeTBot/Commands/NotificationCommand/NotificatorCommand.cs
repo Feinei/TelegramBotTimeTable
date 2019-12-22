@@ -31,6 +31,9 @@ namespace TimeTBot.Commands
         {
             db = context;
             this.bot = bot;
+           
+            foreach (var ev in db.GetAllEvents())
+                allReminds.Add(ev.NextTime, ev);
         }
 
         public override string Execute(string id, string message)
@@ -95,6 +98,7 @@ namespace TimeTBot.Commands
                 .ContinueWith(x => Send(client, (TEvent)notif.Value), ct)
                 .Wait(ct);
 
+                allReminds.Remove(notif.Key);
                 db.TryToRemoveEvent(id, notif.Value.Description);
             }
         }
