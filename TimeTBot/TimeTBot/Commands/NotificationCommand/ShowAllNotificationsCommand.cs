@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace TimeTBot.Commands.NotificationCommand
+namespace TimeTBot
 {
-    class ShowAllNotificationsCommand<TTimeTableEvent, TEvent, TUser> : Command
-    where TTimeTableEvent : class, ITimeTableEvent, new()
-    where TEvent : class, IEvent
-    where TUser : class, IUser
+    public class ShowAllNotificationsCommand<TTimeTableEvent, TEvent, TUser> : Command
+        where TTimeTableEvent : class, ITimeTableEvent, new()
+        where TEvent : class, IEvent
+        where TUser : class, IUser
     {
         private IDbContext<TTimeTableEvent, TEvent, TUser> db;
 
@@ -19,11 +18,11 @@ namespace TimeTBot.Commands.NotificationCommand
 
         public override string Execute(string id, string message)
         {
-            var events = db.GetEvents(id)
-            .OrderBy(ev => ev.NextTime);
+            var events = db.GetEvents(id)?
+                .OrderBy(ev => ev.NextTime);
 
-            if (events.Count() == 0)
-                return "List is empty";
+            if (events != null && events.Count() == 0)
+                return "У вас нет запланированных событий!";
 
             else
             {
@@ -39,7 +38,7 @@ namespace TimeTBot.Commands.NotificationCommand
 
         public override string GetDescription()
         {
-            return "Show all notifications";
+            return "Показать все уведомления";
         }
     }
 }

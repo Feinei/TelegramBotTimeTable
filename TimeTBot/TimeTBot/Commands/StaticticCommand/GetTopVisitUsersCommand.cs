@@ -20,7 +20,11 @@ namespace TimeTBot
             var visits = db.GetAllVisits();
             var builder = new StringBuilder();
             foreach (var visit in visits.OrderByDescending(v => v.Item2).Take(10))
-                builder.Append($"{visit.Item2} - {visit.Item1} | ");
+            {
+                var userName = db.GetUser(visit.Item1)?.UserName;
+                if (userName != null)
+                    builder.Append($"{visit.Item2} - {userName} | ");
+            }
             return builder.ToString();
         }
 

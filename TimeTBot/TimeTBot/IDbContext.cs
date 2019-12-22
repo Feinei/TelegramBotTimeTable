@@ -23,9 +23,8 @@ namespace TimeTBot
         bool TryToRemoveEvent(string userId, string eventName);
 
         void AddVisit(string userId);
-        void AddUserForVisit(string userId, string userName);
         int GetCountOfVisits(string userId);
-        // Tuple (user name | count of visits)
+        // Tuple (user id | count of visits)
         Tuple<string, int>[] GetAllVisits();
     }
 }

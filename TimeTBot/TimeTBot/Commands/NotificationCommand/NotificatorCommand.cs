@@ -3,15 +3,12 @@ using Microsoft.Bot.Schema;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Telegram.Bot;
-using Telegram.Bot.Types;
 
-namespace TimeTBot.Commands
+namespace TimeTBot
 {
-    class NotificatorCommand<TTimeTableEvent, TEvent, TUser> : Command
+    public class NotificatorCommand<TTimeTableEvent, TEvent, TUser> : Command
     where TTimeTableEvent : class, ITimeTableEvent, new()
     where TEvent : class, IEvent, new()
     where TUser : class, IUser
@@ -24,16 +21,14 @@ namespace TimeTBot.Commands
 
         public readonly static TimeSpan rusTime = new TimeSpan(3, 0, 0);
 
-        private readonly ITurnContext<IMessageActivity> bot;
+        private readonly ITurnContext bot;
+        private static bool isWorking = false;
 
         public NotificatorCommand(IDbContext<TTimeTableEvent, TEvent, TUser> context,
-        ITurnContext<IMessageActivity> bot) : base(@"/e create")
+        ITurnContext bot) : base(@"/e create")
         {
             db = context;
             this.bot = bot;
-           
-            foreach (var ev in db.GetAllEvents())
-                allReminds.Add(ev.NextTime, ev);
         }
 
         public override string Execute(string id, string message)
@@ -45,13 +40,13 @@ namespace TimeTBot.Commands
             }
             catch
             {
-                return "Wrong format. If you want to create notification, write like: \"e create : DD.MM.YYYY HH.MM - event_name\"";
+                return "Неправильный формат! Сообщение должно быть вида: \"e create : DD.MM.YYYY HH.MM - event_name\"";
             }
 
             if (notif.NextTime < (DateTime.UtcNow + rusTime))
-                return "This time has expired.";
+                return "Это время уже прошло";
 
-            Action<ITurnContext<IMessageActivity>, TEvent> Send = (client, notification) =>
+            Action<ITurnContext, TEvent> Send = (client, notification) =>
             {
                 if (int.TryParse(id, out int _id))
                     client.SendActivityAsync(MessageFactory.Text(notification.Description)).GetAwaiter().GetResult();
@@ -63,42 +58,42 @@ namespace TimeTBot.Commands
 
             lock (allReminds)
             {
+                notif.UserId = id;
                 allReminds.Add(notif.NextTime, notif);
                 db.AddEvent((TEvent)notif);
             }
 
-            if (allReminds.Count == 1)
+            if (!isWorking)
+            {
                 Task.Factory.StartNew(() => SendReminds(token, bot, Send, id));
+                isWorking = true;
+            }
 
             return "";
         }
 
         public override string GetDescription()
         {
-            return "Create notification";
+            return "Создать напоминание";
         }
 
-        private void SendReminds(CancellationToken ct, ITurnContext<IMessageActivity> client,
-        Action<ITurnContext<IMessageActivity>, TEvent> Send, string id)
+        private void SendReminds(CancellationToken ct, ITurnContext client,
+        Action<ITurnContext, TEvent> Send, string id)
         {
             while (true)
             {
-                if (allReminds.Count == 0)
-                    break;
-
-                var notif = allReminds.First();       
+                var notif = allReminds.First();
                 var interval = notif.Value.NextTime - (DateTime.UtcNow + rusTime);
 
                 if (interval <= TimeSpan.Zero)
                 {
                     interval = TimeSpan.Zero;
                 }
-
+                client.Activity.Conversation.Id = notif.Value.UserId;
                 Task.Delay(interval, ct)
                 .ContinueWith(x => Send(client, (TEvent)notif.Value), ct)
                 .Wait(ct);
 
-                allReminds.Remove(notif.Key);
                 db.TryToRemoveEvent(id, notif.Value.Description);
             }
         }

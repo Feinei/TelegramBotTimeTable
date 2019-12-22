@@ -41,6 +41,7 @@ namespace TimeTBot
             if (IsUserAdded(user.Id))
                 return;
             Users.Add(user);
+            Views.Add(new View() { Id = user.Id, Count = 0 });
             SaveChanges();
         }
 
@@ -131,16 +132,6 @@ namespace TimeTBot
             SaveChanges();
         }
 
-        // Add new user to statictic
-        public void AddUserForVisit(string userId, string userName)
-        {
-            var stat = Views.Find(userId);
-            if (stat != null)
-                return;
-            Views.Add(new View() { Id = userId, UserName = userName, Count = 0 });
-            SaveChanges();
-        }
-
         // Get count of visits for user
         public int GetCountOfVisits(string userId)
         {
@@ -148,10 +139,10 @@ namespace TimeTBot
             return stat == null ? 0 : stat.Count;
         }
 
-        // Get all visits
+        // Get all visits (Tuple [ User id | Count of visits ])
         public Tuple<string, int>[] GetAllVisits()
         {
-            return Views.Select(st => Tuple.Create(st.UserName, st.Count)).ToArray();
+            return Views.Select(st => Tuple.Create(st.Id, st.Count)).ToArray();
         }
     }
 }
