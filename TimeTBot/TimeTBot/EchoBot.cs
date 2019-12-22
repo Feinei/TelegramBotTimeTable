@@ -58,32 +58,34 @@ namespace Microsoft.BotBuilderSamples.Bots
             // Count visit
             db.AddVisit(id);
 
-            // Execute previous command (if exists)
-            if (cacheDictionary.ContainsKey(id) && cacheDictionary.GetValue(id).ContainsKey("next"))
-            {
-                foreach (var command in commands)
-                {
-                    if (command.Contains(cacheDictionary.GetValue(id)["next"]))
-                    {
-                        var message = command.Execute(id, turnContext.Activity.Text);
-                        if (message != null)
-                            await turnContext.SendActivityAsync(MessageFactory.Text(message), cancellationToken);
-                        return;
-                    }
-                }      
-            }
+            var commandHandler = new CommandsHandler(cacheDictionary, commands);
+            commandHandler.Execute(id, turnContext.Activity.Text);
+            //// Execute previous command (if exists)
+            //if (cacheDictionary.ContainsKey(id) && cacheDictionary.GetValue(id).ContainsKey("next"))
+            //{
+            //    foreach (var command in commands)
+            //    {
+            //        if (command.Contains(cacheDictionary.GetValue(id)["next"]))
+            //        {
+            //            var message = command.Execute(id, turnContext.Activity.Text);
+            //            if (message != null)
+            //                await turnContext.SendActivityAsync(MessageFactory.Text(message), cancellationToken);
+            //            return;
+            //        }
+            //    }      
+            //}
 
-            // Execute command by user message (if previous command is null)
-            foreach (var command in commands)
-            {
-                if (command.Contains(turnContext.Activity.Text))
-                {
-                    var message = command.Execute(id, turnContext.Activity.Text);
-                    if (message != null)
-                        await turnContext.SendActivityAsync(MessageFactory.Text(message), cancellationToken);
-                    return;
-                }
-            }
+            //// Execute command by user message (if previous command is null)
+            //foreach (var command in commands)
+            //{
+            //    if (command.Contains(turnContext.Activity.Text))
+            //    {
+            //        var message = command.Execute(id, turnContext.Activity.Text);
+            //        if (message != null)
+            //            await turnContext.SendActivityAsync(MessageFactory.Text(message), cancellationToken);
+            //        return;
+            //    }
+            //}
 
             // Write all commands (if previous command is null and user message is not command)
             foreach (var command in commands)
